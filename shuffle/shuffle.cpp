@@ -19,8 +19,8 @@ public:
 public:
 	Shelf(const char *initLetters) {
 
-		gen = 0;
-		letterCount = strlen(initLetters);
+		gen = 1;
+		letterCount = (int)strlen(initLetters);
 		memcpy(letters, initLetters, letterCount + 1);	
 		firstLetter = 127;
 		for (char *l = letters; *l; l++) {
@@ -63,7 +63,7 @@ public:
 		bool solution = shuffleEntropy();
 
 		double seconds = difftime(time(NULL), timer);
-		printf("%.f seconds\n", seconds);
+		printf("\n%.f seconds\n", seconds);
 		if (!solution) {
 			printf("...no solution\n");
 		}
@@ -74,7 +74,7 @@ public:
 
 		const int MAX_SOLUTIONS = 4000;
 		struct solution {
-			int src, dst, num;
+			int src, dst, num, cost;
 		} solutions[MAX_SOLUTIONS];
 
 		int minCost = 0;
@@ -84,10 +84,11 @@ public:
 			for (int num = 2; num < letterCount - src; num++) {
 				for (int dst = src + num + 1; dst < letterCount + 1; dst++) {
 					int cost = entropyChangeCost(src, dst, num);
-					if (cost < 0)  {
+					if (cost < -2)  {
 						solutions[count].dst = dst;
 						solutions[count].src = src;
 						solutions[count].num = num;
+						solutions[count].cost = cost;
 						count ++;
 						if (count > MAX_SOLUTIONS) {
 							printf("Overflow\n");
@@ -102,10 +103,11 @@ public:
 			for (int num = 2; num < letterCount - src + 1; num++) {
 				for (int dst = 0; dst < src; dst++) {
 					int cost = entropyChangeCost(src, dst, num);
-					if (cost < 0)  {
+					if (cost < -2)  {
 						solutions[count].dst = src + num;
 						solutions[count].src = dst;
 						solutions[count].num = src - dst;
+						solutions[count].cost = cost;
 						count++;
 						if (count > MAX_SOLUTIONS) {
 							printf("Overflow\n");
@@ -116,14 +118,8 @@ public:
 			}
 		}
 		
-		if (gen == 0) {
-			printf("Possible solutions %d ", count);
-		}
 
 		for (int i = 0; i < count; i++) {
-			if (gen == 0) {
-				printf(".");
-			}
 
 			Shelf shelf(*this, solutions[i].num, solutions[i].src, solutions[i].dst);
 			if (shelf.entropy() == 0 || (shelf.gen < maxGen && shelf.shuffleEntropy())) {
@@ -207,10 +203,10 @@ public:
 
 		int diff = rVal - lVal;
 
-		if (diff > 0) {
-			return diff - 1;
+		if (diff == 1) {
+			return 0;
 		} else {
-			return -diff;
+			return 1;
 		}
 	}
 };
@@ -227,7 +223,7 @@ int main()
 
 	Shelf shelf(origLetters);
 
-	printf("check %s\n", origLetters);
+	printf("check %s\n\n", origLetters);
 
 	shelf.checkShuffleEntropy();
 
